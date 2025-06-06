@@ -1,6 +1,3 @@
-Perfect! Here's the full README content formatted for easy copy-paste into a `.docx` or anywhere else:
-
----
 
 # 🕸️ Website Scraper
 
@@ -93,6 +90,3 @@ http://localhost:3000
 
 MIT License. Free to use and modify.
 
----
-
-Let me know if you want a personalized version with your GitHub name, profile pic, or college details!
