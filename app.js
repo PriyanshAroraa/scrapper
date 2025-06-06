@@ -22,35 +22,48 @@ app.get("/", (req, res) => {
 });
 
 app.post("/scrape", async (req, res) => {
-  const { url } = req.body;
+  let { url } = req.body;
+
+  // Auto-fix if protocol is missing
+  if (!/^https?:\/\//i.test(url)) {
+    url = "https://" + url;
+  }
 
   try {
-    const response = await axios.get(url);
+    // Validate URL format
+    new URL(url);
+  } catch (e) {
+    return res.status(400).send("❌ Invalid URL format.");
+  }
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0', // Pretend to be a browser
+      }
+    });
+
     const $ = cheerio.load(response.data);
 
-    // Extract visible text
     const text = $('body').text().replace(/\s+/g, ' ').trim();
-
-    // Extract all links
     const links = [];
     $('a').each((i, el) => {
       const link = $(el).attr('href');
       if (link) links.push(link);
     });
 
-    // Format output
     const output = `📝 TEXT CONTENT:\n\n${text}\n\n🔗 LINKS:\n\n${links.join('\n')}`;
 
-    // Respond with downloadable .txt file
     res.setHeader('Content-Disposition', 'attachment; filename="scraped.txt"');
     res.setHeader('Content-Type', 'text/plain');
     res.send(output);
 
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send("❌ Failed to scrape. Check if the URL is valid or accessible.");
+    console.error("Scrape failed:", err.message);
+    res.status(500).send("❌ Failed to scrape. Site may have blocked the request or is unreachable.");
   }
 });
+
 
 app.listen(PORT, () => {
   console.log(`✅ Server is running at http://localhost:${PORT}`);
